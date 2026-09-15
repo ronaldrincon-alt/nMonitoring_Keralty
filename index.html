@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>navify Monitoring Keralty - Gantt Schedule</title>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Figtree', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a1d29 0%, #2d3142 100%);
+            color: #e8eaf0;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, #0073ea 0%, #0060b9 100%);
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0, 115, 234, 0.3);
+        }
+
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #cce5ff;
+            font-weight: 400;
+        }
+
+        /* KPI Cards */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0073ea;
+            margin-bottom: 4px;
+        }
+
+        .kpi-card.completed .kpi-value {
+            color: #00c875;
+        }
+
+        .kpi-card.in-progress .kpi-value {
+            color: #fdab3d;
+        }
+
+        .kpi-card.not-started .kpi-value {
+            color: #676879;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: #b0b3c1;
+            font-weight: 500;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #b0b3c1;
+            min-width: 100px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: #e8eaf0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Figtree', sans-serif;
+        }
+
+        .filter-btn:hover {
+            background: rgba(0, 115, 234, 0.2);
+            border-color: #0073ea;
+        }
+
+        .filter-btn.active {
+            background: #0073ea;
+            border-color: #0073ea;
+            color: #ffffff;
+            box-shadow: 0px 2px 8px rgba(0, 115, 234, 0.4);
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: #e8eaf0;
+            font-size: 14px;
+            font-family: 'Figtree', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0073ea;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0px 0px 0px 3px rgba(0, 115, 234, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: #676879;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 3px;
+        }
+
+        .view-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: #b0b3c1;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Figtree', sans-serif;
+        }
+
+        .view-btn.active {
+            background: #0073ea;
+            color: #ffffff;
+        }
+
+        /* Gantt Chart */
+        .gantt-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .gantt-wrapper {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .gantt-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1200px;
+        }
+
+        .gantt-header {
+            background: rgba(0, 115, 234, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .gantt-header th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cce5ff;
+            border-bottom: 2px solid rgba(0, 115, 234, 0.3);
+            white-space: nowrap;
+        }
+
+        .gantt-header th.task-col {
+            width: 280px;
+            min-width: 280px;
+        }
+
+        .gantt-header th.phase-col {
+            width: 140px;
+            min-width: 140px;
+        }
+
+        .gantt-header th.status-col {
+            width: 130px;
+            min-width: 130px;
+        }
+
+        .gantt-header th.timeline-col {
+            width: 600px;
+            min-width: 600px;
+        }
+
+        .timeline-months {
+            display: flex;
+            width: 100%;
+        }
+
+        .timeline-month {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            font-weight: 600;
+            color: #cce5ff;
+        }
+
+        .timeline-month:first-child {
+            border-left: none;
+        }
+
+        .gantt-body tr {
+            transition: all 0.2s ease;
+        }
+
+        .gantt-body tr:hover {
+            background: rgba(0, 115, 234, 0.1);
+        }
+
+        .gantt-body tr.completed {
+            background: rgba(0, 200, 117, 0.05);
+        }
+
+        .gantt-body tr.completed:hover {
+            background: rgba(0, 200, 117, 0.12);
+        }
+
+        .gantt-body td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            color: #e8eaf0;
+        }
+
+        .task-name {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-name .checkmark {
+            color: #00c875;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .phase-inicio { background: rgba(0, 115, 234, 0.2); color: #579bfc; }
+        .phase-planificacion { background: rgba(157, 211, 38, 0.2); color: #9cd326; }
+        .phase-preliminares { background: rgba(253, 171, 61, 0.2); color: #fdab3d; }
+        .phase-ejecucion { background: rgba(157, 80, 221, 0.2); color: #9d50dd; }
+        .phase-golive { background: rgba(0, 200, 117, 0.2); color: #00c875; }
+        .phase-cierre { background: rgba(102, 204, 255, 0.2); color: #66ccff; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-completada {
+            background: rgba(0, 200, 117, 0.2);
+            color: #00c875;
+            border: 1px solid rgba(0, 200, 117, 0.4);
+        }
+
+        .status-en-proceso {
+            background: rgba(253, 171, 61, 0.2);
+            color: #fdab3d;
+            border: 1px solid rgba(253, 171, 61, 0.4);
+        }
+
+        .status-revision {
+            background: rgba(87, 155, 252, 0.2);
+            color: #579bfc;
+            border: 1px solid rgba(87, 155, 252, 0.4);
+        }
+
+        .status-sin-iniciar {
+            background: rgba(103, 104, 121, 0.2);
+            color: #b0b3c1;
+            border: 1px solid rgba(103, 104, 121, 0.4);
+        }
+
+        .timeline-cell {
+            position: relative;
+            padding: 8px;
+        }
+
+        .timeline-grid {
+            display: flex;
+            width: 100%;
+            height: 32px;
+            position: relative;
+        }
+
+        .timeline-segment {
+            flex: 1;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .timeline-segment:first-child {
+            border-left: none;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            height: 24px;
+            top: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #ffffff;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-bar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .timeline-bar.completed {
+            border: 2px solid #00c875;
+            box-shadow: 0px 0px 12px rgba(0, 200, 117, 0.4);
+        }
+
+        /* Table View */
+        .table-view {
+            display: none;
+        }
+
+        .table-view.active {
+            display: block;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: rgba(0, 115, 234, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cce5ff;
+            border-bottom: 2px solid rgba(0, 115, 234, 0.3);
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            color: #e8eaf0;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(0, 115, 234, 0.1);
+        }
+
+        .data-table tbody tr.completed {
+            background: rgba(0, 200, 117, 0.05);
+        }
+
+        .data-table tbody tr.completed:hover {
+            background: rgba(0, 200, 117, 0.12);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .kpi-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-label {
+                min-width: auto;
+            }
+
+            .search-input {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>navify Monitoring Keralty</h1>
+            <p>Cronograma del Proyecto y Gestión de Línea de Tiempo (Mes 1 a Mes 6)</p>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">34</div>
+                <div class="kpi-label">Total Actividades</div>
+            </div>
+            <div class="kpi-card completed">
+                <div class="kpi-value">19</div>
+                <div class="kpi-label">✓ Completadas (56%)</div>
+            </div>
+            <div class="kpi-card in-progress">
+                <div class="kpi-value">5</div>
+                <div class="kpi-label">En Proceso / Revisión</div>
+            </div>
+            <div class="kpi-card not-started">
+                <div class="kpi-value">10</div>
+                <div class="kpi-label">Sin Iniciar</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-label">Fase:</div>
+                <div class="filter-buttons">
+                    <button class="filter-btn phase-filter active" data-phase="all">Todas</button>
+                    <button class="filter-btn phase-filter" data-phase="Inicio">Inicio</button>
+                    <button class="filter-btn phase-filter" data-phase="Planificación">Planificación</button>
+                    <button class="filter-btn phase-filter" data-phase="Preliminares">Preliminares</button>
+                    <button class="filter-btn phase-filter" data-phase="Ejecución">Ejecución</button>
+                    <button class="filter-btn phase-filter" data-phase="Go Live">Go Live</button>
+                    <button class="filter-btn phase-filter" data-phase="Cierre de proyecto">Cierre</button>
+                </div>
+            </div>
+            <div class="control-row">
+                <div class="control-label">Estado:</div>
+                <div class="filter-buttons">
+                    <button class="filter-btn status-filter active" data-status="all">Todos los Estados</button>
+                    <button class="filter-btn status-filter" data-status="Completada">✓ Solo Completadas</button>
+                    <button class="filter-btn status-filter" data-status="En Proceso,En Revisión">⏳ En Proceso / Revisión</button>
+                    <button class="filter-btn status-filter" data-status="Sin Iniciar">⚪ Sin Iniciar</button>
+                </div>
+            </div>
+            <div class="control-row">
+                <div class="control-label">Buscar:</div>
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar actividades...">
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="gantt">Gantt</button>
+                    <button class="view-btn" data-view="table">Tabla</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gantt View -->
+        <div class="gantt-container gantt-view">
+            <div class="gantt-wrapper">
+                <table class="gantt-table">
+                    <thead class="gantt-header">
+                        <tr>
+                            <th class="task-col">Actividad</th>
+                            <th class="phase-col">Fase</th>
+                            <th class="status-col">Estado</th>
+                            <th class="timeline-col">
+                                <div class="timeline-months">
+                                    <div class="timeline-month">Mes 1</div>
+                                    <div class="timeline-month">Mes 2</div>
+                                    <div class="timeline-month">Mes 3</div>
+                                    <div class="timeline-month">Mes 4</div>
+                                    <div class="timeline-month">Mes 5</div>
+                                    <div class="timeline-month">Mes 6</div>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="gantt-body" id="ganttBody">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="gantt-container table-view" id="tableView">
+            <div class="gantt-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Actividad</th>
+                            <th>Fase</th>
+                            <th>Estado</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>Duración</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Project data
+        const projectData = [
+            // Inicio (Mes 1)
+            { task: "Kick-off del proyecto", phase: "Inicio", status: "Completada", start: 1, duration: 1, color: "#0073ea" },
+            { task: "Definición de alcance y objetivos", phase: "Inicio", status: "Completada", start: 1, duration: 1, color: "#0073ea" },
+            { task: "Conformación del equipo", phase: "Inicio", status: "Completada", start: 1, duration: 1, color: "#0073ea" },
+            
+            // Planificación (Mes 1-2)
+            { task: "Análisis de requerimientos", phase: "Planificación", status: "Completada", start: 1, duration: 2, color: "#9cd326" },
+            { task: "Diseño de arquitectura técnica", phase: "Planificación", status: "Completada", start: 1, duration: 2, color: "#9cd326" },
+            { task: "Plan de gestión de riesgos", phase: "Planificación", status: "Completada", start: 1, duration: 1, color: "#9cd326" },
+            { task: "Cronograma detallado", phase: "Planificación", status: "Completada", start: 2, duration: 1, color: "#9cd326" },
+            { task: "Presupuesto y recursos", phase: "Planificación", status: "Completada", start: 2, duration: 1, color: "#9cd326" },
+            
+            // Preliminares (Mes 2-3)
+            { task: "Configuración de infraestructura", phase: "Preliminares", status: "Completada", start: 2, duration: 2, color: "#fdab3d" },
+            { task: "Instalación de herramientas base", phase: "Preliminares", status: "Completada", start: 2, duration: 1, color: "#fdab3d" },
+            { task: "Configuración de entornos (Dev/QA/Prod)", phase: "Preliminares", status: "Completada", start: 2, duration: 2, color: "#fdab3d" },
+            { task: "Integración con sistemas existentes", phase: "Preliminares", status: "Completada", start: 3, duration: 1, color: "#fdab3d" },
+            { task: "Pruebas de conectividad", phase: "Preliminares", status: "Completada", start: 3, duration: 1, color: "#fdab3d" },
+            
+            // Ejecución (Mes 3-5)
+            { task: "Desarrollo módulo de monitoreo", phase: "Ejecución", status: "Completada", start: 3, duration: 2, color: "#9d50dd" },
+            { task: "Desarrollo módulo de alertas", phase: "Ejecución", status: "Completada", start: 3, duration: 2, color: "#9d50dd" },
+            { task: "Desarrollo dashboard ejecutivo", phase: "Ejecución", status: "Completada", start: 4, duration: 2, color: "#9d50dd" },
+            { task: "Integración con navify", phase: "Ejecución", status: "Completada", start: 4, duration: 1, color: "#9d50dd" },
+            { task: "Desarrollo de reportes automáticos", phase: "Ejecución", status: "En Proceso", start: 4, duration: 2, color: "#9d50dd" },
+            { task: "Pruebas unitarias", phase: "Ejecución", status: "Completada", start: 4, duration: 1, color: "#9d50dd" },
+            { task: "Pruebas de integración", phase: "Ejecución", status: "En Proceso", start: 5, duration: 1, color: "#9d50dd" },
+            { task: "Configuración de seguridad y permisos", phase: "Ejecución", status: "En Revisión", start: 5, duration: 1, color: "#9d50dd" },
+            { task: "Optimización de rendimiento", phase: "Ejecución", status: "En Proceso", start: 5, duration: 1, color: "#9d50dd" },
+            { task: "Documentación técnica", phase: "Ejecución", status: "En Proceso", start: 5, duration: 1, color: "#9d50dd" },
+            
+            // Go Live (Mes 5-6)
+            { task: "Pruebas de aceptación de usuario (UAT)", phase: "Go Live", status: "Sin Iniciar", start: 5, duration: 1, color: "#00c875" },
+            { task: "Corrección de bugs críticos", phase: "Go Live", status: "Sin Iniciar", start: 5, duration: 1, color: "#00c875" },
+            { task: "Capacitación a usuarios finales", phase: "Go Live", status: "Sin Iniciar", start: 5, duration: 1, color: "#00c875" },
+            { task: "Preparación de ambiente productivo", phase: "Go Live", status: "Sin Iniciar", start: 6, duration: 1, color: "#00c875" },
+            { task: "Migración de datos", phase: "Go Live", status: "Sin Iniciar", start: 6, duration: 1, color: "#00c875" },
+            { task: "Despliegue a producción", phase: "Go Live", status: "Sin Iniciar", start: 6, duration: 1, color: "#00c875" },
+            { task: "Monitoreo post-despliegue", phase: "Go Live", status: "Sin Iniciar", start: 6, duration: 1, color: "#00c875" },
+            
+            // Cierre (Mes 6)
+            { task: "Evaluación de resultados", phase: "Cierre de proyecto", status: "Sin Iniciar", start: 6, duration: 1, color: "#66ccff" },
+            { task: "Documentación de lecciones aprendidas", phase: "Cierre de proyecto", status: "Sin Iniciar", start: 6, duration: 1, color: "#66ccff" },
+            { task: "Entrega formal del proyecto", phase: "Cierre de proyecto", status: "Sin Iniciar", start: 6, duration: 1, color: "#66ccff" },
+            { task: "Cierre administrativo", phase: "Cierre de proyecto", status: "Sin Iniciar", start: 6, duration: 1, color: "#66ccff" }
+        ];
+
+        // Phase color mapping
+        const phaseColors = {
+            "Inicio": "inicio",
+            "Planificación": "planificacion",
+            "Preliminares": "preliminares",
+            "Ejecución": "ejecucion",
+            "Go Live": "golive",
+            "Cierre de proyecto": "cierre"
+        };
+
+        // Status color mapping
+        const statusColors = {
+            "Completada": "completada",
+            "En Proceso": "en-proceso",
+            "En Revisión": "revision",
+            "Sin Iniciar": "sin-iniciar"
+        };
+
+        // Render Gantt chart
+        function renderGantt(data) {
+            const ganttBody = document.getElementById('ganttBody');
+            ganttBody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                if (item.status === 'Completada') {
+                    row.classList.add('completed');
+                }
+
+                const leftPercent = ((item.start - 1) / 6) * 100;
+                const widthPercent = (item.duration / 6) * 100;
+
+                const checkmark = item.status === 'Completada' ? '<span class="checkmark">✓</span>' : '';
+                const completedClass = item.status === 'Completada' ? 'completed' : '';
+
+                row.innerHTML = `
+                    <td class="task-col">
+                        <div class="task-name">
+                            ${checkmark}
+                            <span>${item.task}</span>
+                        </div>
+                    </td>
+                    <td class="phase-col">
+                        <span class="phase-badge phase-${phaseColors[item.phase]}">${item.phase}</span>
+                    </td>
+                    <td class="status-col">
+                        <span class="status-badge status-${statusColors[item.status]}">${item.status}</span>
+                    </td>
+                    <td class="timeline-cell">
+                        <div class="timeline-grid">
+                            ${Array(6).fill('<div class="timeline-segment"></div>').join('')}
+                            <div class="timeline-bar ${completedClass}" 
+                                 style="left: ${leftPercent}%; width: ${widthPercent}%; background: ${item.color};"
+                                 title="${item.task} (Mes ${item.start} - Mes ${item.start + item.duration - 1})">
+                                ${item.duration === 1 ? '1 Mes' : item.duration + ' Meses'}
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                ganttBody.appendChild(row);
+            });
+        }
+
+        // Render table view
+        function renderTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                if (item.status === 'Completada') {
+                    row.classList.add('completed');
+                }
+
+                const checkmark = item.status === 'Completada' ? '<span class="checkmark">✓</span>' : '';
+
+                row.innerHTML = `
+                    <td>
+                        <div class="task-name">
+                            ${checkmark}
+                            <span>${item.task}</span>
+                        </div>
+                    </td>
+                    <td><span class="phase-badge phase-${phaseColors[item.phase]}">${item.phase}</span></td>
+                    <td><span class="status-badge status-${statusColors[item.status]}">${item.status}</span></td>
+                    <td>Mes ${item.start}</td>
+                    <td>Mes ${item.start + item.duration - 1}</td>
+                    <td>${item.duration === 1 ? '1 Mes' : item.duration + ' Meses'}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Filter data
+        let currentPhaseFilter = 'all';
+        let currentStatusFilter = 'all';
+        let currentSearchTerm = '';
+
+        function filterData() {
+            let filtered = projectData;
+
+            // Phase filter
+            if (currentPhaseFilter !== 'all') {
+                filtered = filtered.filter(item => item.phase === currentPhaseFilter);
+            }
+
+            // Status filter
+            if (currentStatusFilter !== 'all') {
+                const statuses = currentStatusFilter.split(',');
+                filtered = filtered.filter(item => statuses.includes(item.status));
+            }
+
+            // Search filter
+            if (currentSearchTerm) {
+                filtered = filtered.filter(item => 
+                    item.task.toLowerCase().includes(currentSearchTerm.toLowerCase())
+                );
+            }
+
+            renderGantt(filtered);
+            renderTable(filtered);
+        }
+
+        // Phase filter buttons
+        document.querySelectorAll('.phase-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.phase-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPhaseFilter = btn.dataset.phase;
+                filterData();
+            });
+        });
+
+        // Status filter buttons
+        document.querySelectorAll('.status-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStatusFilter = btn.dataset.status;
+                filterData();
+            });
+        });
+
+        // Search input
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearchTerm = e.target.value;
+            filterData();
+        });
+
+        // View toggle
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const view = btn.dataset.view;
+                if (view === 'gantt') {
+                    document.querySelector('.gantt-view').style.display = 'block';
+                    document.getElementById('tableView').classList.remove('active');
+                } else {
+                    document.querySelector('.gantt-view').style.display = 'none';
+                    document.getElementById('tableView').classList.add('active');
+                }
+            });
+        });
+
+        // Initial render
+        renderGantt(projectData);
+        renderTable(projectData);
+    </script>
+</body>
+</html>
